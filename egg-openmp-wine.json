@@ -5,9 +5,9 @@
         "update_url": null
     },
     "exported_at": "2026-11-02T08:50:00+07:00",
-    "name": "open.mp (Windows via Wine)",
+    "name": "open.mp (Windows via Wine, upload manual)",
     "author": "gambangsuep@gmail.com",
-    "description": "open.mp server versi Windows (omp-server.exe) yang dijalankan di Linux memakai Wine.",
+    "description": "open.mp versi Windows via Wine. Tanpa download otomatis: upload sendiri file server ke folder server.",
     "features": [],
     "docker_images": {
         "open.mp Wine": "derrick0930/openmp-wine:latest"
@@ -22,32 +22,12 @@
     },
     "scripts": {
         "installation": {
-            "script": "#!/bin/bash\napt-get update -qq\napt-get install -y -qq curl unzip jq >/dev/null\n\ncd /mnt/server || exit 1\n\nREPO=https://api.github.com/repos/openmultiplayer/open.mp/releases\nif [ \"${OMP_VERSION}\" = \"latest\" ]; then\n    API=\"${REPO}/latest\"\nelse\n    API=\"${REPO}/tags/${OMP_VERSION}\"\nfi\n\nURL=$(curl -sSL \"$API\" | jq -r --arg a \"$OMP_ASSET\" '.assets[]? | select(.name==$a) | .browser_download_url')\nif [ -z \"$URL\" ]; then\n    echo \"Asset '${OMP_ASSET}' tidak ditemukan di release '${OMP_VERSION}'.\"\n    exit 1\nfi\n\necho \"Download: $URL\"\ncurl -sSL -o /tmp/omp.zip \"$URL\"\nmkdir -p /tmp/omp\nunzip -q -o /tmp/omp.zip -d /tmp/omp\n\nSRC=/tmp/omp\n[ -d /tmp/omp/Server ] && SRC=/tmp/omp/Server\ncp -a \"$SRC\"/. /mnt/server/\n\nmkdir -p /mnt/server/{gamemodes,filterscripts,plugins,components,scriptfiles}\nchown -R 988:988 /mnt/server 2>/dev/null\n\nls -la /mnt/server/omp-server.exe || { echo \"omp-server.exe tidak ada di arsip.\"; exit 1; }\necho \"Instalasi selesai.\"\n",
+            "script": "#!/bin/bash\nmkdir -p /mnt/server\necho \"Upload file open.mp (omp-server.exe, components, dll, dll) ke folder server.\"\n",
             "container": "debian:bookworm-slim",
             "entrypoint": "bash"
         }
     },
     "variables": [
-        {
-            "name": "Versi open.mp",
-            "description": "Tag release GitHub, atau 'latest'.",
-            "env_variable": "OMP_VERSION",
-            "default_value": "latest",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|string|max:32",
-            "field_type": "text"
-        },
-        {
-            "name": "Nama aset",
-            "description": "Nama file zip di halaman release. Build resmi saat ini: open.mp-win-x86.zip.",
-            "env_variable": "OMP_ASSET",
-            "default_value": "open.mp-win-x86.zip",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|string|max:64",
-            "field_type": "text"
-        },
         {
             "name": "Arsitektur Wine",
             "description": "win32 untuk build x86, win64 jika memakai build x86_64.",

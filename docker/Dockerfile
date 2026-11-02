@@ -1,14 +1,20 @@
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN dpkg --add-architecture i386 \
- && apt-get update \
- && apt-get install -y --no-install-recommends \
-    wine wine64 wine32:i386 libwine libwine:i386 fonts-wine \
-    ca-certificates curl unzip tzdata iproute2 procps tini \
- && rm -rf /var/lib/apt/lists/* \
- && useradd -m -d /home/container -s /bin/bash container
+RUN set -eux; \
+    dpkg --add-architecture i386; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates curl unzip tzdata iproute2 procps tini; \
+    mkdir -pm755 /etc/apt/keyrings; \
+    curl -fsSL -o /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key; \
+    curl -fsSL -o /etc/apt/sources.list.d/winehq-trixie.sources https://dl.winehq.org/wine-builds/debian/dists/trixie/winehq-trixie.sources; \
+    apt-get update; \
+    apt-get install -y --install-recommends winehq-stable; \
+    rm -rf /var/lib/apt/lists/*; \
+    useradd -m -d /home/container -s /bin/bash container; \
+    wine --version
 
 USER container
 WORKDIR /home/container
