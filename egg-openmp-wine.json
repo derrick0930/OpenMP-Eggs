@@ -1,0 +1,72 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-11-02T08:50:00+07:00",
+    "name": "open.mp (Windows via Wine)",
+    "author": "gambangsuep@gmail.com",
+    "description": "open.mp server versi Windows (omp-server.exe) yang dijalankan di Linux memakai Wine.",
+    "features": [],
+    "docker_images": {
+        "open.mp Wine": "derrick0930/openmp-wine:latest"
+    },
+    "file_denylist": [],
+    "startup": "wine omp-server.exe",
+    "config": {
+        "files": "{\n    \"config.json\": {\n        \"parser\": \"json\",\n        \"find\": {\n            \"network.port\": \"{{server.build.default.port}}\",\n            \"max_players\": \"{{server.build.env.MAX_PLAYERS}}\"\n        }\n    }\n}",
+        "startup": "{\n    \"done\": \"(?i)(started|running|listening)\"\n}",
+        "logs": "{}",
+        "stop": "exit"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\napt-get update -qq\napt-get install -y -qq curl unzip jq >/dev/null\n\ncd /mnt/server || exit 1\n\nREPO=https://api.github.com/repos/openmultiplayer/open.mp/releases\nif [ \"${OMP_VERSION}\" = \"latest\" ]; then\n    API=\"${REPO}/latest\"\nelse\n    API=\"${REPO}/tags/${OMP_VERSION}\"\nfi\n\nURL=$(curl -sSL \"$API\" | jq -r --arg a \"$OMP_ASSET\" '.assets[]? | select(.name==$a) | .browser_download_url')\nif [ -z \"$URL\" ]; then\n    echo \"Asset '${OMP_ASSET}' tidak ditemukan di release '${OMP_VERSION}'.\"\n    exit 1\nfi\n\necho \"Download: $URL\"\ncurl -sSL -o /tmp/omp.zip \"$URL\"\nmkdir -p /tmp/omp\nunzip -q -o /tmp/omp.zip -d /tmp/omp\n\nSRC=/tmp/omp\n[ -d /tmp/omp/Server ] && SRC=/tmp/omp/Server\ncp -a \"$SRC\"/. /mnt/server/\n\nmkdir -p /mnt/server/{gamemodes,filterscripts,plugins,components,scriptfiles}\nchown -R 988:988 /mnt/server 2>/dev/null\n\nls -la /mnt/server/omp-server.exe || { echo \"omp-server.exe tidak ada di arsip.\"; exit 1; }\necho \"Instalasi selesai.\"\n",
+            "container": "debian:bookworm-slim",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Versi open.mp",
+            "description": "Tag release GitHub, atau 'latest'.",
+            "env_variable": "OMP_VERSION",
+            "default_value": "latest",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:32",
+            "field_type": "text"
+        },
+        {
+            "name": "Nama aset",
+            "description": "Nama file zip di halaman release. Build resmi saat ini: open.mp-win-x86.zip.",
+            "env_variable": "OMP_ASSET",
+            "default_value": "open.mp-win-x86.zip",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "Arsitektur Wine",
+            "description": "win32 untuk build x86, win64 jika memakai build x86_64.",
+            "env_variable": "WINEARCH",
+            "default_value": "win32",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:win32,win64",
+            "field_type": "text"
+        },
+        {
+            "name": "Max players",
+            "description": "Jumlah slot pemain. Hanya admin yang bisa mengubah (per server, di Admin > Server > Startup).",
+            "env_variable": "MAX_PLAYERS",
+            "default_value": "50",
+            "user_viewable": true,
+            "user_editable": false,
+            "rules": "required|integer|between:1,1000",
+            "field_type": "text"
+        }
+    ]
+}
