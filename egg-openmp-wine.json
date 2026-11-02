@@ -15,14 +15,14 @@
     "file_denylist": [],
     "startup": "wine omp-server.exe",
     "config": {
-        "files": "{\n    \"config.json\": {\n        \"parser\": \"json\",\n        \"find\": {\n            \"network.port\": \"{{server.build.default.port}}\",\n            \"max_players\": \"{{server.build.env.MAX_PLAYERS}}\"\n        }\n    }\n}",
+        "files": "{\n    \"server/config.json\": {\n        \"parser\": \"json\",\n        \"find\": {\n            \"network.port\": \"{{server.build.default.port}}\",\n            \"max_players\": \"{{server.build.env.MAX_PLAYERS}}\"\n        }\n    }\n}",
         "startup": "{\n    \"done\": \"(?i)(started|running|listening)\"\n}",
         "logs": "{}",
         "stop": "exit"
     },
     "scripts": {
         "installation": {
-            "script": "#!/bin/bash\nmkdir -p /mnt/server\necho \"Upload file open.mp (omp-server.exe, components, dll, dll) ke folder server.\"\n",
+            "script": "#!/bin/bash\nmkdir -p /mnt/server/server\necho \"Upload file open.mp (omp-server.exe, components, config.json, dll) ke folder server/.\"\n",
             "container": "debian:bookworm-slim",
             "entrypoint": "bash"
         }
