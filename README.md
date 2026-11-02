@@ -1,58 +1,40 @@
-# open.mp (Windows) di Linux via Wine
+# \# open.mp (Windows/Wine) — Pterodactyl egg
 
-Docker image + egg Pterodactyl untuk menjalankan `omp-server.exe` di host Linux memakai Wine.
+# 
 
-## Isi repo
+# Pterodactyl egg for running `omp-server.exe` (the Windows build of open.mp) on a Linux host using Wine. This egg does not download open.mp files automatically.
 
-```
-docker/Dockerfile          image (debian bookworm + wine)
-docker/entrypoint.sh       buat prefix wine lalu jalankan STARTUP
-.github/workflows/docker.yml   build & push otomatis ke Docker Hub
-egg-openmp-wine.json       egg untuk di-import ke panel
-```
+# 
 
-## Catatan arsitektur
+# \## The `server/` folder
 
-Rilis resmi open.mp untuk Windows saat ini hanya `open.mp-win-x86.zip` (32-bit), jadi prefix Wine default-nya `win32`.
-Kalau nanti ada build `x86_64`, ubah variabel `OMP_ASSET` dan `WINEARCH=win64` di panel. Image ini sudah menyertakan `wine64` dan `wine32`, jadi keduanya jalan tanpa build ulang.
-Command start tetap `wine omp-server.exe`: `wine` otomatis menjalankan exe 32/64-bit sesuai prefix. `wine64` hanya bisa exe 64-bit.
+# 
 
-## Upload ke GitHub
+# The server runs from the `server/` subfolder, not from the panel's server root. The root is a separate mount, and Wine cannot read paths that pass through it, which makes `omp-server.exe` crash while loading components. If the server files are still in the root, the known files (`omp-server.exe`, `components`, `config.json`, `gamemodes`, etc.) are moved into `server/` automatically on the first start.
 
-1. Buat repo baru di github.com (misal `openmp-wine`), kosong, tanpa README.
-2. Ekstrak zip ini, lalu di folder hasil ekstrak:
+# 
 
-   ```bash
-   git init
-   git add .
-   git commit -m "init"
-   git branch -M main
-   git remote add origin https://github.com/USERNAME/openmp-wine.git
-   git push -u origin main
-   ```
+# Example file manager view:
 
-   Atau tanpa git: di halaman repo klik **Add file > Upload files**, drag semua isi folder (pastikan folder `.github` ikut), lalu **Commit changes**.
+# 
 
-## Secret untuk Docker Hub
+# !\[Server root folder](images/preview-root.png)
 
-1. Docker Hub > **Account settings > Personal access tokens > Generate new token**, akses **Read & Write**, salin tokennya.
-2. Repo GitHub > **Settings > Secrets and variables > Actions > New repository secret**, buat dua:
-   - `DOCKERHUB_USERNAME` = `derrick0930`
-   - `DOCKERHUB_TOKEN` = token tadi (bukan password akun)
+# 
 
-## Build image
+# !\[Contents of server/](images/preview-server.png)
 
-1. Tab **Actions** > workflow `build-image` > **Run workflow** (atau push ulang). Tunggu hijau.
-2. Image jadi di `derrick0930/openmp-wine:latest` (repo Docker Hub dibuat otomatis, public by default).
+# 
 
-## Pasang egg di Pterodactyl
+# \## Variables
 
-1. Panel admin > **Nests** > pilih nest > **Import Egg** > upload `egg-openmp-wine.json`. Image sudah diisi `derrick0930/openmp-wine:latest`.
-2. Buat server dengan egg ini. Installer akan mengunduh release open.mp dari GitHub, lalu server jalan lewat `wine omp-server.exe`.
+# 
 
-## Catatan
+# | Name in panel | Variable | Default | Description |
 
-- Start pertama lebih lama karena Wine membuat prefix di `/home/container/.wine`.
-- Port dan `max_players` diisi otomatis ke `config.json`. Kalau tidak berubah, edit manual di file manager.
-- Pola `done` di egg (`started|running|listening`) bisa disesuaikan dengan log open.mp yang kamu pakai, supaya status "Running" muncul pas.
-- Plugin/komponen Windows (`.dll`) taruh di `components/` atau `plugins/` seperti biasa.
+# |---------------|----------|---------|-------------|
+
+# | Arsitektur Wine (Wine architecture) | `WINEARCH` | `win32` | `win32` for the x86 build (the current official release), `win64` if using an x86\_64 build. The prefix is recreated automatically when this changes. |
+
+# | Max players | `MAX\_PLAYERS` | `50` | Player slots. Server owners can only view it; admins change it in \*\*Admin > Servers > (server) > Startup\*\*. |
+
