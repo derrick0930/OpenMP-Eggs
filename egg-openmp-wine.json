@@ -5,9 +5,9 @@
         "update_url": null
     },
     "exported_at": "2026-11-02T08:50:00+07:00",
-    "name": "open.mp (Windows via Wine, upload manual)",
-    "author": "gambangsuep@gmail.com",
-    "description": "open.mp versi Windows via Wine. Tanpa download otomatis: upload sendiri file server ke folder server.",
+    "name": "open.mp (Windows via Wine)",
+    "author": "support@derrick.web.id",
+    "description": "open.mp versi Windows via Wine.",
     "features": [],
     "docker_images": {
         "open.mp Wine": "derrick0930/openmp-wine:latest"
